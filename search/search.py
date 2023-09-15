@@ -125,7 +125,6 @@ def breadthFirstSearch(problem: SearchProblem):
             # Obtenemos los hijos del nodo que vamos a explorar y los agregamos a la franja
             for (newCoordinates, newDirection, newCost) in problem.getSuccessors(node):
                 fringe.push((newCoordinates, direction + [newDirection]))
-    util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
