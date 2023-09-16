@@ -309,9 +309,8 @@ class CornersProblem(search.SearchProblem):
         if coord in self.corners:
             if coord not in visitedCorners:
                 visitedCorners.append(coord)
-            return (len(visitedCorners) == 4)
-        else:
-            return False
+        return (len(visitedCorners) == 4)
+
         # util.raiseNotDefined()
 
     def getSuccessors(self, state: Any):
@@ -338,11 +337,19 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            if not self.walls[nextx][nexty]:
+            # Indica donde estan las paredes
+            hitWall = self.walls[nextx][nexty]
+            # Si el pacman no choca con la pared
+            if not hitWall:
                 nextState = (nextx, nexty)
+                # Se crea una lista a partir de la tupla visitedCorners
+                nextStateCorners = list(visitedCorners)
+                # Si el estado es una esquina y no ha sido marcado como visitado
                 if nextState in self.corners and nextState not in visitedCorners:
-                    visitedCorners.append(nextState)
-                successors.append(((nextState, visitedCorners), action, 0))
+                    # Se agrega a la lista
+                    nextStateCorners.append(nextState)
+                # Agregamos el estado a la lista de sucesores del nodos
+                successors.append(((nextState, nextStateCorners), action, 0))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
