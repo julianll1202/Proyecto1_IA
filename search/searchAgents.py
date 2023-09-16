@@ -289,7 +289,7 @@ class CornersProblem(search.SearchProblem):
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
-
+        self.startingGameS = startingGameState
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
@@ -327,7 +327,6 @@ class CornersProblem(search.SearchProblem):
         successors = []
         coord, visitedCorners = state
         x, y = coord
-        print(state)
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
@@ -371,7 +370,7 @@ class CornersProblem(search.SearchProblem):
 
 
 
-def cornersHeuristic(state: Any, problem: CornersProblem):
+def cornersHeuristic(state: Any, problem: CornersProblem, ):
     """
     A heuristic for the CornersProblem that you defined.
 
@@ -386,10 +385,37 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
-
+    # Aqui se guardan todas las esquinas que no han sido visitadas
+    unvisitedCorners = []
+    coordinates, visitedCorners = state
+    lowestHeuristic = 0
+    for corner in corners:
+        # Si la esquina no ha sido visitada, se agrega a la lista
+        if corner not in visitedCorners:
+            unvisitedCorners.append(corner)
+    node = coordinates
+    shortestPath = 0
+    # Mientras no haya mas esquinas por visitar
+    while unvisitedCorners is not []:
+        for i in range(len(unvisitedCorners)):
+            # Obtiene la distancia euclidiana desde el nodo en el que nos encontramos contra una de las esquinas
+            # stateHeuristic = mazeDistance(node, unvisitedCorners[i], problem.startingGameS)
+            stateHeuristic = ( (node[0] - unvisitedCorners[i][0]) ** 2 + (node[1] - unvisitedCorners[i][1]) ** 2 ) ** 0.5
+            if i == 0:
+                lowestHeuristic = stateHeuristic
+                node = unvisitedCorners[i]
+            else:
+                # Si la distancia es menor, la guardamos
+                if stateHeuristic < lowestHeuristic:
+                    node = unvisitedCorners[i]
+                    lowestHeuristic = stateHeuristic
+        try:
+            del unvisitedCorners[unvisitedCorners.index(node)]
+        except:
+            break
+        shortestPath += lowestHeuristic
+    return shortestPath
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
     def __init__(self):
