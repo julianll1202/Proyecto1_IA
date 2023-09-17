@@ -348,7 +348,7 @@ class CornersProblem(search.SearchProblem):
                     # Se agrega a la lista
                     nextStateCorners.append(nextState)
                 # Agregamos el estado a la lista de sucesores del nodos
-                successors.append(((nextState, nextStateCorners), action, 0))
+                successors.append(((nextState, nextStateCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -389,32 +389,24 @@ def cornersHeuristic(state: Any, problem: CornersProblem, ):
     # Aqui se guardan todas las esquinas que no han sido visitadas
     unvisitedCorners = []
     coordinates, visitedCorners = state
-    lowestHeuristic = 0
     for corner in corners:
         # Si la esquina no ha sido visitada, se agrega a la lista
         if corner not in visitedCorners:
             unvisitedCorners.append(corner)
-    node = coordinates
-    shortestPath = 0
-    # Mientras no haya mas esquinas por visitar
-    while unvisitedCorners is not []:
-        for i in range(len(unvisitedCorners)):
-            # Obtiene la distancia euclidiana desde el nodo en el que nos encontramos contra una de las esquinas
-            # stateHeuristic = mazeDistance(node, unvisitedCorners[i], problem.startingGameS)
-            stateHeuristic = ( (node[0] - unvisitedCorners[i][0]) ** 2 + (node[1] - unvisitedCorners[i][1]) ** 2 ) ** 0.5
-            if i == 0:
-                lowestHeuristic = stateHeuristic
-                node = unvisitedCorners[i]
-            else:
-                # Si la distancia es menor, la guardamos
-                if stateHeuristic < lowestHeuristic:
-                    node = unvisitedCorners[i]
-                    lowestHeuristic = stateHeuristic
-        try:
-            del unvisitedCorners[unvisitedCorners.index(node)]
-        except:
-            break
-        shortestPath += lowestHeuristic
+    heuristics = []
+    # Si ya fueron visitadas todas las esquinas, se regresa 0
+    if not unvisitedCorners:
+        return 0
+    posX, posY = coordinates
+    for unvisited in unvisitedCorners:
+        # Obtiene la distancia euclidiana desde el nodo en el que nos encontramos contra una de las esquinas
+        cornerX, cornerY = unvisited
+        # Se usa la distancia Manhattan
+        stateHeuristic = abs(posX - cornerX) + abs(posY - cornerY)
+        # La heuristica es agregada a la lista
+        heuristics.append(stateHeuristic)
+
+    shortestPath = max(heuristics)
     return shortestPath
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -508,7 +500,25 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+
+    shortestPath = 0
+    heuristics = []
+    # Si ya fueron visitadas todas las esquinas, se regresa 0
+    if not foodList:
+        return 0
+    posX, posY = position
+    for food in foodList:
+        # Obtiene la distancia euclidiana desde el nodo en el que nos encontramos contra una de las esquinas
+        foodX, foodY = food
+        # Se usa el metodo incluido mazeDistance
+        stateHeuristic = mazeDistance(position, food, problem.startingGameState)
+        # La heuristica es agregada a la lista
+        heuristics.append(stateHeuristic)
+
+    shortestPath = max(heuristics)
+    return shortestPath
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -538,8 +548,32 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
+
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Coordenadas X e Y de la posicion del Pacman
+        node = startPosition
+        actionPath = []
+        actionPath.append(startPosition)
+        heuristics = []
+        foodList = food.asList()
+        foodCopy = foodList.copy()
+        # if not foodList:
+        #     return []
+        # while foodCopy:
+        #     if node not in walls:
+        #         for food in foodCopy:
+        #             posX, posY = node
+        #             foodX, foodY = food
+        #             foodHeuristic = abs(posX - foodX) + abs(posY - foodY)
+        #             heuristics.append(foodHeuristic)
+        #         nodeI = heuristics.index(max(heuristics))
+        #         node = foodCopy.pop(nodeI)
+        #         actionPath.append(node)
+        #         heuristics.clear()
+        # print(actionPath)
+        # return actionPath
+        return search.uniformCostSearch(problem)
+        # util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -573,9 +607,13 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
-
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Si hay comida en esa posicion, se considera un "goal state"
+        if self.food[x][y]:
+            return True
+        else:
+            return False
+        # util.raiseNotDefined()
 
 def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
     """

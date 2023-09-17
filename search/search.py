@@ -90,16 +90,16 @@ def depthFirstSearch(problem: SearchProblem):
     closed = []
     # La franja es una pila (LIFO)
     fringe = util.Stack()
-    fringe.push((problem.getStartState(), [], []))
+    fringe.push((problem.getStartState(), []))
     while not fringe.isEmpty():
-        node, direction, cost = fringe.pop()
+        node, direction = fringe.pop()
         if problem.isGoalState(node):
             closed.append(node)
             return direction
         if node not in closed:
             closed.append(node)
             for (newCoordinates, newDirection, newCost) in problem.getSuccessors(node):
-                fringe.push((newCoordinates, direction + [newDirection], cost + [newCost]))
+                fringe.push((newCoordinates, direction + [newDirection]))
 
     # print("Start:", problem.getStartState())
     # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
